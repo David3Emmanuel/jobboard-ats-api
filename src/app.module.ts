@@ -3,6 +3,8 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { UsersModule } from './users/users.module'
+import { AuthModule } from './auth/auth.module'
 
 @Module({
   imports: [
@@ -16,8 +18,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
         username: configService.get<string>('DB_USERNAME') || 'postgres',
         password: configService.getOrThrow<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME') || 'jobboard_ats',
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: configService.get<boolean>('DB_SYNC') || false,
       }),
     }),
+    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
