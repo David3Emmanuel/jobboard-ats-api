@@ -14,9 +14,9 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const { username, password } = createUserDto
+    const { password, ...rest } = createUserDto
     const user = this.userRepository.create({
-      username,
+      ...rest,
       passwordHash: password, // TODO Hash the password before saving
     })
     console.log('Creating user:', user)
