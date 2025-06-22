@@ -30,7 +30,7 @@ export class JobsController {
     @Request() req: { user: UserWithoutPassword },
   ) {
     if (req.user.role !== UserRole.EMPLOYER)
-      throw new ForbiddenException('Only employers role can update jobs')
+      throw new ForbiddenException('Only employers can update jobs')
 
     return this.jobsService.create(createJobDto)
   }
@@ -53,7 +53,7 @@ export class JobsController {
     @Request() req: { user: UserWithoutPassword },
   ) {
     if (req.user.role !== UserRole.EMPLOYER)
-      throw new ForbiddenException('Only employers role can update jobs')
+      throw new ForbiddenException('Only employers can update jobs')
 
     return this.jobsService.update(+id, updateJobDto, req.user.id)
   }
@@ -66,7 +66,7 @@ export class JobsController {
     @Request() req: { user: UserWithoutPassword },
   ) {
     if (req.user.role !== UserRole.EMPLOYER)
-      throw new ForbiddenException('Only employers role can delete jobs')
+      throw new ForbiddenException('Only employers can delete jobs')
 
     return this.jobsService.remove(+id, req.user.id)
   }

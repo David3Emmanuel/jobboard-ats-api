@@ -1,4 +1,4 @@
-import { IsDecimal, IsNumber, IsOptional, IsString } from 'class-validator'
+import { IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class CreateJobDto {
   @IsString()
@@ -11,10 +11,10 @@ export class CreateJobDto {
   @IsString()
   location: string
 
-  @IsDecimal()
+  @IsNumber()
   minSalary: number
 
-  @IsDecimal()
+  @IsNumber()
   maxSalary: number
 
   @IsString()
