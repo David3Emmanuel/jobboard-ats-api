@@ -39,7 +39,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.message
     }
 
-    // Log the exception for debugging purposes
     this.logger.error(
       `Request ${request.method} ${
         request.url
