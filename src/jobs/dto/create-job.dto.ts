@@ -1,4 +1,5 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator'
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator'
+import { JobType } from '../entities/job.entity'
 
 export class CreateJobDto {
   @IsString()
@@ -17,8 +18,8 @@ export class CreateJobDto {
   @IsNumber()
   maxSalary: number
 
-  @IsString()
-  jobType: string
+  @IsEnum(JobType)
+  jobType: JobType
 
   @IsNumber()
   employerId: number
