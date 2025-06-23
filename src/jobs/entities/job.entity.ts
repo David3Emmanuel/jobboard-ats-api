@@ -1,9 +1,15 @@
 import { User } from 'src/users/user.entity'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm'
 
 export enum JobType {
-  FULL_TIME = 'full_time',
-  PART_TIME = 'part_time',
+  FULL_TIME = 'full-time',
+  PART_TIME = 'part-time',
   CONTRACT = 'contract',
   INTERN = 'intern',
   VOLUNTEER = 'volunteer',
@@ -13,6 +19,9 @@ export enum JobType {
 export class Job {
   @PrimaryGeneratedColumn()
   id: number
+
+  @CreateDateColumn()
+  datePosted: Date
 
   @Column()
   title: string

@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
 
 export enum UserRole {
   EMPLOYER = 'employer',
-  JOB_SEEKER = 'job_seeker',
+  JOB_SEEKER = 'job-seeker',
   ADMIN = 'admin',
 }
 
