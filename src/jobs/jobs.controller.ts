@@ -11,12 +11,14 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  Query,
 } from '@nestjs/common'
 import { JobsService } from './jobs.service'
 import { CreateJobDto } from './dto/create-job.dto'
 import { UpdateJobDto } from './dto/update-job.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { UserRole, UserWithoutPassword } from 'src/users/user.entity'
+import { ListJobsDto } from './dto/list-jobs.dto'
 
 @Controller('jobs')
 export class JobsController {
@@ -36,8 +38,8 @@ export class JobsController {
   }
 
   @Get()
-  async findAll() {
-    return this.jobsService.findAll()
+  async findAll(@Query() listJobsDto: ListJobsDto) {
+    return this.jobsService.findAll(listJobsDto)
   }
 
   @Get(':id')

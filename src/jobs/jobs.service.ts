@@ -10,6 +10,12 @@ import { Job } from './entities/job.entity'
 import { Repository } from 'typeorm'
 import { UsersService } from '../users/users.service'
 import { UserRole } from 'src/users/user.entity'
+import {
+  ListJobsDto,
+  ListJobsResponse,
+  SortField,
+  SortOrder,
+} from './dto/list-jobs.dto'
 
 @Injectable()
 export class JobsService {
@@ -40,10 +46,75 @@ export class JobsService {
     return this.jobRepository.save(job)
   }
 
-  async findAll(): Promise<Job[]> {
-    return this.jobRepository.find({
-      relations: ['employer'],
-    })
+  async findAll(listJobsDto: ListJobsDto): Promise<ListJobsResponse> {
+    const queryBuilder = this.jobRepository.createQueryBuilder('job')
+
+    // Apply filter parameters
+    if (listJobsDto.jobType) {
+      queryBuilder.andWhere('job.jobType = :jobType', {
+        jobType: listJobsDto.jobType,
+      })
+    }
+
+    if (listJobsDto.title) {
+      queryBuilder.andWhere('job.title ILIKE :title', {
+        title: `%${listJobsDto.title}%`,
+      })
+    }
+
+    if (listJobsDto.location) {
+      queryBuilder.andWhere('job.location ILIKE :location', {
+        location: `%${listJobsDto.location}%`,
+      })
+    }
+
+    if (listJobsDto.minSalary) {
+      queryBuilder.andWhere('job.minSalary >= :minSalary', {
+        minSalary: listJobsDto.minSalary,
+      })
+    }
+
+    if (listJobsDto.maxSalary) {
+      queryBuilder.andWhere('job.maxSalary <= :maxSalary', {
+        maxSalary: listJobsDto.maxSalary,
+      })
+    }
+
+    // Apply sorting parameters
+    const sortField = listJobsDto.sortBy || SortField.DATE
+    const sortBy = {
+      [SortField.TITLE]: 'title',
+      [SortField.LOCATION]: 'location',
+      [SortField.MIN_SALARY]: 'minSalary',
+      [SortField.MAX_SALARY]: 'maxSalary',
+      [SortField.JOB_TYPE]: 'jobType',
+      [SortField.DATE]: 'datePosted',
+    }[sortField]
+
+    const sortOrder = listJobsDto.sortOrder || SortOrder.DESC
+    queryBuilder.orderBy(
+      `job.${sortBy}`,
+      sortOrder.toUpperCase() as 'ASC' | 'DESC',
+    )
+    queryBuilder.addOrderBy('job.datePosted', 'DESC')
+
+    // Apply pagination parameters
+    const currentPage = listJobsDto.page || 1
+    const limit = listJobsDto.limit || 10
+    const offset = (currentPage - 1) * limit
+    queryBuilder.skip(offset).take(limit)
+
+    const [jobs, totalJobs] = await queryBuilder.getManyAndCount()
+    const totalPages = Math.ceil(totalJobs / limit)
+    const hasNextPage = currentPage < totalPages
+
+    return {
+      jobs,
+      totalJobs,
+      totalPages,
+      currentPage,
+      hasNextPage,
+    }
   }
 
   async findOne(id: number): Promise<Job> {
