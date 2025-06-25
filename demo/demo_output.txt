@@ -1,0 +1,71 @@
+
+> jobboard-ats-api@0.0.1 demo
+> node demo/test-runner.js
+
+
+====== STARTING API TESTS ======
+
+
+====== AUTHENTICATION TESTS ======
+
+==== TEST 1: Get API welcome message ====
+
+==== TEST 2: Register job seeker user ====
+
+==== TEST 3: Login as job seeker ====
+
+==== TEST 4: Register employer user ====
+
+==== TEST 5: Login as employer ====
+====== AUTHENTICATION TESTS COMPLETED ======
+
+
+====== USER MANAGEMENT TESTS ======
+
+==== TEST 6: Get all users ====
+
+==== TEST 7: Get specific user by ID ====
+
+==== TEST 8: Update user information ====
+====== USER MANAGEMENT TESTS COMPLETED ======
+
+
+====== JOB MANAGEMENT TESTS ======
+
+==== TEST 9: Create new job postings (as employer) ====
+
+==== TEST 20: Get specific job by ID ====
+
+==== TEST 21: Update job posting (as employer) ====
+
+==== TEST 22: Authorization test - Update job as job seeker (should fail) ====
+====== JOB MANAGEMENT TESTS COMPLETED ======
+
+
+====== JOB QUERY TESTS ======
+
+==== TEST 10: Get all job listings (no filters) ====
+
+==== TEST 11: Filter jobs by job type ====
+
+==== TEST 12: Filter jobs by location ====
+
+==== TEST 13: Filter jobs by salary range ====
+
+==== TEST 14: Filter jobs by title ====
+
+==== TEST 15: Sort jobs by min salary (ascending) ====
+
+==== TEST 16: Sort jobs by max salary (descending) ====
+
+==== TEST 17: Test pagination (page 1, limit 2) ====
+
+==== TEST 18: Test pagination (page 2, limit 1) ====
+
+==== TEST 19: Test combined filtering, sorting and pagination ====
+====== JOB QUERY TESTS COMPLETED ======
+
+
+====== APPLICATION TESTS ======
+
+==== TEST 1: Apply to a job with resume and cover letter ====

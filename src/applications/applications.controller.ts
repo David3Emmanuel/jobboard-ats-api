@@ -34,7 +34,7 @@ export class ApplicationsController {
     @Param('jobId', ParseIntPipe) jobId: number,
     @Request() req: { user: UserWithoutPassword },
     @UploadedFiles()
-    files: {
+    files?: {
       resume?: Express.Multer.File[]
       coverLetter?: Express.Multer.File[]
     },
@@ -42,8 +42,8 @@ export class ApplicationsController {
     return this.applicationsService.create(
       jobId,
       req.user,
-      files.resume,
-      files.coverLetter,
+      files?.resume,
+      files?.coverLetter,
     )
   }
 
@@ -72,7 +72,7 @@ export class ApplicationsController {
     @Body() updateApplicationDto: UpdateApplicationDto,
     @Request() req: { user: UserWithoutPassword },
     @UploadedFiles()
-    files: {
+    files?: {
       resume?: Express.Multer.File[]
       coverLetter?: Express.Multer.File[]
     },
@@ -81,8 +81,8 @@ export class ApplicationsController {
       id,
       updateApplicationDto,
       req.user,
-      files.resume,
-      files.coverLetter,
+      files?.resume,
+      files?.coverLetter,
     )
   }
 
