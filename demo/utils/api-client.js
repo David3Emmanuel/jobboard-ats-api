@@ -1,3 +1,4 @@
+const { fetch } = require("undici");
 const BASE_API_URL = "http://localhost:3001";
 
 /**
@@ -36,7 +37,63 @@ async function makeRequest(
     const data = await response.json();
 
     console.log(`\n--- ${method} ${endpoint} ---`);
-    console.log("Options:", options);
+    console.log("Options:", JSON.stringify(options, null, 2));
+    console.log("Status:", response.status);
+    console.log("Response:", JSON.stringify(data, null, 2));
+
+    return { status: response.status, data };
+  } catch (error) {
+    console.error(`Error in ${method} ${endpoint}:`, error);
+    return { status: 500, data: { message: error.message } };
+  }
+}
+
+/**
+ * Helper function to make multipart/form-data requests
+ * @param {string} endpoint - API endpoint
+ * @param {string} method - HTTP method
+ * @param {FormData} formData - Form data object
+ * @param {string} token - Auth token
+ * @returns {Promise<object>} - Response object
+ */
+async function makeMultipartRequest(
+  endpoint,
+  method = "POST",
+  formData = null,
+  token = null
+) {
+  // FIXME: this function has issues
+  const options = {
+    method,
+    headers: {},
+  };
+
+  if (formData) {
+    options.body = formData;
+  }
+
+  if (token) {
+    options.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (!endpoint.startsWith("/")) endpoint = `/${endpoint}`;
+
+  try {
+    const response = await fetch(`${BASE_API_URL}${endpoint}`, options);
+    const data = await response.json();
+
+    console.log(`\n--- ${method} ${endpoint} ---`);
+    console.log(
+      "Options:",
+      JSON.stringify(
+        {
+          ...options,
+          body: formData ? "FormData object" : options.body,
+        },
+        null,
+        2
+      )
+    );
     console.log("Status:", response.status);
     console.log("Response:", JSON.stringify(data, null, 2));
 
@@ -58,6 +115,7 @@ function logTestInfo(testNumber, testName) {
 
 module.exports = {
   makeRequest,
+  makeMultipartRequest,
   logTestInfo,
   BASE_API_URL,
 };
