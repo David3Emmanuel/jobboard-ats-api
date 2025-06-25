@@ -6,6 +6,8 @@ let employerAuthToken = null;
 let userId = null;
 let employerId = null;
 let jobId = null;
+let secondJobId = null;
+let thirdJobId = null;
 
 /**
  * Helper function to make HTTP requests
@@ -132,8 +134,10 @@ async function runTests() {
       authToken
     );
 
-    // 9. Create a job (as employer)
-    logTestInfo(9, "Create new job posting (as employer)");
+    // 9. Create multiple jobs (as employer) for testing list filters and pagination
+    logTestInfo(9, "Create new job postings (as employer)");
+
+    // Create first job
     const createJobResponse = await makeRequest(
       "jobs",
       "POST",
@@ -143,7 +147,7 @@ async function runTests() {
         location: "Remote",
         minSalary: 60000,
         maxSalary: 90000,
-        jobType: "Full-time",
+        jobType: "full-time",
         employerId: employerId,
       },
       employerAuthToken
@@ -153,16 +157,94 @@ async function runTests() {
       jobId = createJobResponse.data.id;
     }
 
-    // 10. Get all jobs
-    logTestInfo(10, "Get all job listings");
+    // Create second job with different properties for filter/sort testing
+    const createJob2Response = await makeRequest(
+      "jobs",
+      "POST",
+      {
+        title: "Frontend Developer",
+        description: "UI/UX focused developer role",
+        location: "New York",
+        minSalary: 75000,
+        maxSalary: 110000,
+        jobType: "contract",
+        employerId: employerId,
+      },
+      employerAuthToken
+    );
+
+    if (createJob2Response.status === 201) {
+      secondJobId = createJob2Response.data.id;
+    }
+
+    // Create third job with different properties for filter/sort testing
+    const createJob3Response = await makeRequest(
+      "jobs",
+      "POST",
+      {
+        title: "DevOps Engineer",
+        description: "Infrastructure and deployment automation",
+        location: "Remote",
+        minSalary: 85000,
+        maxSalary: 120000,
+        jobType: "part-time",
+        employerId: employerId,
+      },
+      employerAuthToken
+    );
+
+    if (createJob3Response.status === 201) {
+      thirdJobId = createJob3Response.data.id;
+    }
+
+    // 10. Get all jobs (without filters)
+    logTestInfo(10, "Get all job listings (no filters)");
     await makeRequest("/jobs");
 
-    // 11. Get specific job
-    logTestInfo(11, "Get specific job by ID");
+    // 11. Test filtering by job type
+    logTestInfo(11, "Filter jobs by job type");
+    await makeRequest("/jobs?jobType=full-time");
+
+    // 12. Test filtering by location
+    logTestInfo(12, "Filter jobs by location");
+    await makeRequest("/jobs?location=Remote");
+
+    // 13. Test filtering by salary range
+    logTestInfo(13, "Filter jobs by salary range");
+    await makeRequest("/jobs?minSalary=70000&maxSalary=100000");
+
+    // 14. Test filtering by title (partial match)
+    logTestInfo(14, "Filter jobs by title");
+    await makeRequest("/jobs?title=Developer");
+
+    // 15. Test sorting by salary (ascending)
+    logTestInfo(15, "Sort jobs by min salary (ascending)");
+    await makeRequest("/jobs?sortBy=min-salary&sortOrder=asc");
+
+    // 16. Test sorting by salary (descending)
+    logTestInfo(16, "Sort jobs by max salary (descending)");
+    await makeRequest("/jobs?sortBy=max-salary&sortOrder=desc");
+
+    // 17. Test pagination
+    logTestInfo(17, "Test pagination (page 1, limit 2)");
+    await makeRequest("/jobs?page=1&limit=2");
+
+    // 18. Test pagination (page 2)
+    logTestInfo(18, "Test pagination (page 2, limit 1)");
+    await makeRequest("/jobs?page=2&limit=1");
+
+    // 19. Test combining filters, sorting and pagination
+    logTestInfo(19, "Test combined filtering, sorting and pagination");
+    await makeRequest(
+      "/jobs?location=Remote&sortBy=min-salary&sortOrder=desc&page=1&limit=2"
+    );
+
+    // 20. Get specific job
+    logTestInfo(20, "Get specific job by ID");
     await makeRequest(`jobs/${jobId}`);
 
-    // 12. Update job (as employer)
-    logTestInfo(12, "Update job posting (as employer)");
+    // 21. Update job (as employer)
+    logTestInfo(21, "Update job posting (as employer)");
     await makeRequest(
       `jobs/${jobId}`,
       "PATCH",
@@ -173,9 +255,9 @@ async function runTests() {
       employerAuthToken
     );
 
-    // 13. Try to update job as job seeker (should fail)
+    // 22. Try to update job as job seeker (should fail)
     logTestInfo(
-      13,
+      22,
       "Authorization test - Update job as job seeker (should fail)"
     );
     await makeRequest(
@@ -187,16 +269,18 @@ async function runTests() {
       authToken
     );
 
-    // 14. Delete job (as employer)
-    logTestInfo(14, "Delete job posting (as employer)");
+    // 23. Delete jobs (as employer)
+    logTestInfo(23, "Delete job postings (as employer)");
     await makeRequest(`jobs/${jobId}`, "DELETE", null, employerAuthToken);
+    await makeRequest(`jobs/${secondJobId}`, "DELETE", null, employerAuthToken);
+    await makeRequest(`jobs/${thirdJobId}`, "DELETE", null, employerAuthToken);
 
-    // 15. Delete user account
-    logTestInfo(15, "Delete user account");
+    // 24. Delete user account
+    logTestInfo(24, "Delete user account");
     await makeRequest(`users/${userId}`, "DELETE", null, authToken);
 
-    // 16. Delete employer account
-    logTestInfo(16, "Delete employer account");
+    // 25. Delete employer account
+    logTestInfo(25, "Delete employer account");
     await makeRequest(`users/${employerId}`, "DELETE", null, employerAuthToken);
 
     console.log("\n====== API TESTS COMPLETED ======\n");
