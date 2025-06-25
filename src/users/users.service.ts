@@ -40,7 +40,12 @@ export class UsersService {
   }
 
   async confirmUsernameAndPassword(username: string, password: string) {
-    const user = await this.userRepository.findOneBy({ username })
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.username = :username', { username })
+      .getOne()
+
     if (user && user.passwordHash === password) {
       return stripPassword(user)
     }
