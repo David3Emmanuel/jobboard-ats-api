@@ -1,10 +1,12 @@
 import { User } from 'src/users/user.entity'
+import { Application } from 'src/applications/entities/application.entity'
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm'
 
 export enum JobType {
@@ -45,4 +47,9 @@ export class Job {
     cascade: ['insert', 'update', 'recover'],
   })
   employer: User
+
+  @OneToMany(() => Application, (application) => application.job, {
+    cascade: true,
+  })
+  applications: Application[]
 }

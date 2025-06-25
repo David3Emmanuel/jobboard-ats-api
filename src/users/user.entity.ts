@@ -1,4 +1,5 @@
 import { Job } from 'src/jobs/entities/job.entity'
+import { Application } from 'src/applications/entities/application.entity'
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
 
 export enum UserRole {
@@ -23,6 +24,11 @@ export class User {
 
   @OneToMany(() => Job, (job) => job.employer, { cascade: true })
   jobs: Job[]
+
+  @OneToMany(() => Application, (application) => application.applicant, {
+    cascade: true,
+  })
+  applications: Application[]
 }
 
 export type UserWithoutPassword = Omit<User, 'passwordHash'>

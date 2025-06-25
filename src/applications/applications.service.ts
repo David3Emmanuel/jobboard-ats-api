@@ -1,0 +1,172 @@
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common'
+import { UpdateApplicationDto } from './dto/update-application.dto'
+import { UserWithoutPassword, UserRole } from 'src/users/user.entity'
+import { Repository } from 'typeorm'
+import { Application } from './entities/application.entity'
+import { InjectRepository } from '@nestjs/typeorm'
+
+@Injectable()
+export class ApplicationsService {
+  constructor(
+    @InjectRepository(Application)
+    private readonly applicationRepository: Repository<Application>,
+  ) {}
+
+  create(
+    jobId: number,
+    applicant: UserWithoutPassword,
+    resume?: Express.Multer.File[],
+    coverLetter?: Express.Multer.File[],
+  ) {
+    // Only job seekers can create applications
+    if (applicant.role !== UserRole.JOB_SEEKER) {
+      throw new ForbiddenException('Only job seekers can create applications')
+    }
+
+    if (!resume) {
+      throw new BadRequestException('Resume is required')
+    }
+
+    const application = this.applicationRepository.create({
+      jobId,
+      applicant,
+      resumePath: resume[0].filename,
+      coverLetterPath: coverLetter?.[0].filename,
+    })
+    return this.applicationRepository.save(application)
+  }
+
+  async findAll(applicant: UserWithoutPassword): Promise<Application[]> {
+    // Job seekers can only see their own applications
+    // Employers can see applications for their jobs
+    // Admins can see all applications
+    if (applicant.role === UserRole.JOB_SEEKER) {
+      return this.applicationRepository.find({
+        where: { applicant: { id: applicant.id } },
+        relations: ['job', 'applicant'],
+      })
+    } else if (applicant.role === UserRole.EMPLOYER) {
+      return this.applicationRepository.find({
+        where: { job: { employer: { id: applicant.id } } },
+        relations: ['job', 'applicant'],
+      })
+    } else if (applicant.role === UserRole.ADMIN) {
+      return this.applicationRepository.find({
+        relations: ['job', 'applicant'],
+      })
+    }
+
+    throw new ForbiddenException(
+      'You do not have permission to view applications',
+    )
+  }
+
+  async findOne(
+    id: number,
+    applicant: UserWithoutPassword,
+  ): Promise<Application> {
+    const application = await this.applicationRepository.findOne({
+      where: { id },
+      relations: ['job', 'applicant', 'job.employer'],
+    })
+
+    if (!application) {
+      throw new NotFoundException(`Application with ID ${id} not found`)
+    }
+
+    // Job seekers can only see their own applications
+    // Employers can see applications for their jobs
+    // Admins can see all applications
+    if (applicant.role === UserRole.JOB_SEEKER) {
+      if (application.applicant.id !== applicant.id) {
+        throw new ForbiddenException(
+          'You do not have permission to view this application',
+        )
+      }
+    } else if (applicant.role === UserRole.EMPLOYER) {
+      if (application.job.employer.id !== applicant.id) {
+        throw new ForbiddenException(
+          'You do not have permission to view this application',
+        )
+      }
+    } else if (applicant.role !== UserRole.ADMIN) {
+      throw new ForbiddenException(
+        'You do not have permission to view applications',
+      )
+    }
+
+    return application
+  }
+
+  async update(
+    id: number,
+    updateApplicationDto: UpdateApplicationDto,
+    applicant: UserWithoutPassword,
+  ) {
+    const application = await this.findOne(id, applicant)
+
+    // Job seekers can only update their own applications
+    // Employers can update applications for their jobs
+    // Admins can update any application
+    if (applicant.role === UserRole.JOB_SEEKER) {
+      if (application.applicant.id !== applicant.id) {
+        throw new ForbiddenException(
+          'You do not have permission to update this application',
+        )
+      }
+    } else if (applicant.role === UserRole.EMPLOYER) {
+      if (application.job.employer.id !== applicant.id) {
+        throw new ForbiddenException(
+          'You do not have permission to update this application',
+        )
+      }
+    } else if (applicant.role !== UserRole.ADMIN) {
+      throw new ForbiddenException(
+        'You do not have permission to update applications',
+      )
+    }
+
+    // TODO: This action should update a application
+  }
+
+  async remove(
+    id: number,
+    applicant: UserWithoutPassword,
+  ): Promise<{ message: string }> {
+    const application = await this.findOne(id, applicant)
+
+    // Job seekers can only delete their own applications
+    // Employers can delete applications for their jobs
+    // Admins can delete any application
+    if (applicant.role === UserRole.JOB_SEEKER) {
+      if (application.applicant.id !== applicant.id) {
+        throw new ForbiddenException(
+          'You do not have permission to delete this application',
+        )
+      }
+    } else if (applicant.role === UserRole.EMPLOYER) {
+      if (application.job.employer.id !== applicant.id) {
+        throw new ForbiddenException(
+          'You do not have permission to delete this application',
+        )
+      }
+    } else if (applicant.role !== UserRole.ADMIN) {
+      throw new ForbiddenException(
+        'You do not have permission to delete applications',
+      )
+    }
+
+    const result = await this.applicationRepository.delete(id)
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Application with ID ${id} not found`)
+    }
+
+    return { message: `Application with ID ${id} deleted successfully` }
+  }
+}
