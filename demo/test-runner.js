@@ -7,6 +7,8 @@ const AuthTests = require("./modules/auth-tests");
 const UserTests = require("./modules/user-tests");
 const JobTests = require("./modules/job-tests");
 const JobQueryTests = require("./modules/job-query-tests");
+const ApplicationTests = require("./modules/application-tests");
+const FileUploadTests = require("./modules/file-upload-tests");
 
 /**
  * Main test runner that orchestrates all test modules
@@ -46,8 +48,22 @@ async function runTests() {
     const jobQueryTests = new JobQueryTests();
     await jobQueryTests.runJobQueryTests();
 
-    // 5. Cleanup (if not in persist mode)
+    // 5. Run application tests (apply to the first created job)
+    const applicationTests = new ApplicationTests(
+      authResults.authToken,
+      jobResults.jobId
+    );
+    await applicationTests.runApplicationTests();
+
+    // 6. Run file upload tests (download the dummy resume file uploaded in application)
+    const dummyResumeFilename = `dummy-resume.txt`;
+    const fileUploadTests = new FileUploadTests(dummyResumeFilename);
+    await fileUploadTests.runFileUploadTests();
+
+    // 7. Cleanup (if not in persist mode)
     if (!shouldPersist) {
+      await fileUploadTests.cleanupFileDownloads();
+      await applicationTests.cleanupApplications();
       await jobTests.cleanupJobs();
       await userTests.cleanupUsers();
     } else {
@@ -61,6 +77,8 @@ async function runTests() {
       console.log(
         `   - User IDs: ${authResults.userId}, ${authResults.employerId}`
       );
+      console.log(`   - Application ID: ${applicationTests.applicationId}`);
+      console.log(`   - Resume filename: ${dummyResumeFilename}`);
     }
 
     console.log("\n====== API TESTS COMPLETED ======\n");
