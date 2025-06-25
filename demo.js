@@ -1,5 +1,9 @@
 const BASE_API_URL = "http://localhost:3001";
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const shouldPersist = args.includes("--persist");
+
 // Global variables to store tokens and IDs
 let authToken = null;
 let employerAuthToken = null;
@@ -71,6 +75,12 @@ function logTestInfo(testNumber, testName) {
 async function runTests() {
   try {
     console.log("\n====== STARTING API TESTS ======\n");
+
+    if (shouldPersist) {
+      console.log(
+        "🚀 Running in PERSIST mode - delete tests will be skipped\n"
+      );
+    }
 
     // 1. Test the root endpoint
     logTestInfo(1, "Get API welcome message");
@@ -269,19 +279,44 @@ async function runTests() {
       authToken
     );
 
-    // 23. Delete jobs (as employer)
-    logTestInfo(23, "Delete job postings (as employer)");
-    await makeRequest(`jobs/${jobId}`, "DELETE", null, employerAuthToken);
-    await makeRequest(`jobs/${secondJobId}`, "DELETE", null, employerAuthToken);
-    await makeRequest(`jobs/${thirdJobId}`, "DELETE", null, employerAuthToken);
+    // Skip delete tests if --persist flag is used
+    if (!shouldPersist) {
+      // 23. Delete jobs (as employer)
+      logTestInfo(23, "Delete job postings (as employer)");
+      await makeRequest(`jobs/${jobId}`, "DELETE", null, employerAuthToken);
+      await makeRequest(
+        `jobs/${secondJobId}`,
+        "DELETE",
+        null,
+        employerAuthToken
+      );
+      await makeRequest(
+        `jobs/${thirdJobId}`,
+        "DELETE",
+        null,
+        employerAuthToken
+      );
 
-    // 24. Delete user account
-    logTestInfo(24, "Delete user account");
-    await makeRequest(`users/${userId}`, "DELETE", null, authToken);
+      // 24. Delete user account
+      logTestInfo(24, "Delete user account");
+      await makeRequest(`users/${userId}`, "DELETE", null, authToken);
 
-    // 25. Delete employer account
-    logTestInfo(25, "Delete employer account");
-    await makeRequest(`users/${employerId}`, "DELETE", null, employerAuthToken);
+      // 25. Delete employer account
+      logTestInfo(25, "Delete employer account");
+      await makeRequest(
+        `users/${employerId}`,
+        "DELETE",
+        null,
+        employerAuthToken
+      );
+    } else {
+      console.log(
+        "\n==== SKIPPING DELETE TESTS (--persist flag detected) ===="
+      );
+      console.log("📝 Created data will persist in the database");
+      console.log(`   - Job IDs: ${jobId}, ${secondJobId}, ${thirdJobId}`);
+      console.log(`   - User IDs: ${userId}, ${employerId}`);
+    }
 
     console.log("\n====== API TESTS COMPLETED ======\n");
   } catch (error) {
