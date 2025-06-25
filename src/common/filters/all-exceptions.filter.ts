@@ -37,15 +37,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       message = exception.message
+      this.logger.error(
+        `Request ${request.method} ${
+          request.url
+        } failed with status ${status} and error: ${
+          exception instanceof Error ? exception.stack : message
+        }`,
+      )
     }
-
-    this.logger.error(
-      `Request ${request.method} ${
-        request.url
-      } failed with status ${status} and error: ${
-        exception instanceof Error ? exception.stack : message
-      }`,
-    )
 
     response.status(status).json({
       statusCode: status,
