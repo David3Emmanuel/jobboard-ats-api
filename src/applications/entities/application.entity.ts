@@ -6,9 +6,11 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  Index,
 } from 'typeorm'
 
 @Entity()
+@Index(['jobId', 'applicant'], { unique: true })
 export class Application {
   @PrimaryGeneratedColumn()
   id: number

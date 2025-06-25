@@ -3,10 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common'
 import { UpdateApplicationDto } from './dto/update-application.dto'
 import { UserWithoutPassword, UserRole } from 'src/users/user.entity'
-import { Repository } from 'typeorm'
+import { QueryFailedError, Repository } from 'typeorm'
 import { Application } from './entities/application.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 
@@ -17,7 +18,7 @@ export class ApplicationsService {
     private readonly applicationRepository: Repository<Application>,
   ) {}
 
-  create(
+  async create(
     jobId: number,
     applicant: UserWithoutPassword,
     resume?: Express.Multer.File[],
@@ -38,7 +39,17 @@ export class ApplicationsService {
       resumePath: resume[0].filename,
       coverLetterPath: coverLetter?.[0].filename,
     })
-    return this.applicationRepository.save(application)
+
+    try {
+      return await this.applicationRepository.save(application)
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        if (error.message.toLowerCase().includes('duplicate')) {
+          throw new ConflictException('You have already applied to this job')
+        }
+      }
+      throw error
+    }
   }
 
   async findAll(applicant: UserWithoutPassword): Promise<Application[]> {
