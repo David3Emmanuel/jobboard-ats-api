@@ -1,3 +1,0 @@
-DROP TABLE "user" CASCADE;
-DROP TABLE "job" CASCADE;
-DROP TABLE "application" CASCADE;
