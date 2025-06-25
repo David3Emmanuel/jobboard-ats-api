@@ -10,6 +10,7 @@ import {
   Request,
   UseInterceptors,
   UploadedFiles,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { ApplicationsService } from './applications.service'
 import { UpdateApplicationDto } from './dto/update-application.dto'
@@ -30,7 +31,7 @@ export class ApplicationsController {
     ]),
   )
   create(
-    @Param('jobId') jobId: string,
+    @Param('jobId', ParseIntPipe) jobId: number,
     @Request() req: { user: UserWithoutPassword },
     @UploadedFiles()
     files: {
@@ -39,7 +40,7 @@ export class ApplicationsController {
     },
   ) {
     return this.applicationsService.create(
-      +jobId,
+      jobId,
       req.user,
       files.resume,
       files.coverLetter,
@@ -53,15 +54,15 @@ export class ApplicationsController {
 
   @Get(':id')
   findOne(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Request() req: { user: UserWithoutPassword },
   ) {
-    return this.applicationsService.findOne(+id, req.user)
+    return this.applicationsService.findOne(id, req.user)
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateApplicationDto: UpdateApplicationDto,
     @Request() req: { user: UserWithoutPassword },
   ) {
@@ -70,9 +71,9 @@ export class ApplicationsController {
 
   @Delete(':id')
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Request() req: { user: UserWithoutPassword },
   ) {
-    return this.applicationsService.remove(+id, req.user)
+    return this.applicationsService.remove(id, req.user)
   }
 }

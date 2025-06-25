@@ -12,6 +12,7 @@ import {
   Request,
   ForbiddenException,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { JobsService } from './jobs.service'
 import { CreateJobDto } from './dto/create-job.dto'
@@ -43,33 +44,33 @@ export class JobsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.jobsService.findOne(+id)
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.jobsService.findOne(id)
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateJobDto: UpdateJobDto,
     @Request() req: { user: UserWithoutPassword },
   ) {
     if (req.user.role !== UserRole.EMPLOYER)
       throw new ForbiddenException('Only employers can update jobs')
 
-    return this.jobsService.update(+id, updateJobDto, req.user.id)
+    return this.jobsService.update(id, updateJobDto, req.user.id)
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Request() req: { user: UserWithoutPassword },
   ) {
     if (req.user.role !== UserRole.EMPLOYER)
       throw new ForbiddenException('Only employers can delete jobs')
 
-    return this.jobsService.remove(+id, req.user.id)
+    return this.jobsService.remove(id, req.user.id)
   }
 }
