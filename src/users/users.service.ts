@@ -19,9 +19,7 @@ export class UsersService {
       ...rest,
       passwordHash: password, // TODO Hash the password before saving
     })
-    console.log('Creating user:', user)
     const newUser = await this.userRepository.save(user)
-    console.log('New user created:', newUser)
     return stripPassword(newUser)
   }
 
