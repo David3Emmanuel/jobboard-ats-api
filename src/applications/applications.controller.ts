@@ -61,12 +61,29 @@ export class ApplicationsController {
   }
 
   @Patch(':id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'resume', maxCount: 1 },
+      { name: 'coverLetter', maxCount: 1 },
+    ]),
+  )
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateApplicationDto: UpdateApplicationDto,
     @Request() req: { user: UserWithoutPassword },
+    @UploadedFiles()
+    files: {
+      resume?: Express.Multer.File[]
+      coverLetter?: Express.Multer.File[]
+    },
   ) {
-    return this.applicationsService.update(+id, updateApplicationDto, req.user)
+    return this.applicationsService.update(
+      id,
+      updateApplicationDto,
+      req.user,
+      files.resume,
+      files.coverLetter,
+    )
   }
 
   @Delete(':id')

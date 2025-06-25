@@ -29,15 +29,18 @@ export class ApplicationsService {
       throw new ForbiddenException('Only job seekers can create applications')
     }
 
-    if (!resume) {
+    if (!resume || resume.length === 0) {
       throw new BadRequestException('Resume is required')
     }
 
     const application = this.applicationRepository.create({
       jobId,
       applicant,
-      resumePath: resume[0].filename,
-      coverLetterPath: coverLetter?.[0].filename,
+      resumePath: '/uploads/' + resume[0].filename,
+      coverLetterPath:
+        coverLetter && coverLetter.length > 0
+          ? '/uploads/' + coverLetter[0].filename
+          : undefined,
     })
 
     try {
@@ -118,6 +121,8 @@ export class ApplicationsService {
     id: number,
     updateApplicationDto: UpdateApplicationDto,
     applicant: UserWithoutPassword,
+    resume?: Express.Multer.File[],
+    coverLetter?: Express.Multer.File[],
   ) {
     const application = await this.findOne(id, applicant)
 
@@ -142,7 +147,14 @@ export class ApplicationsService {
       )
     }
 
-    // TODO: This action should update a application
+    Object.assign(application, updateApplicationDto)
+    if (resume && resume.length > 0) {
+      application.resumePath = '/uploads/' + resume[0].filename
+    }
+    if (coverLetter && coverLetter.length > 0) {
+      application.coverLetterPath = '/uploads/' + coverLetter[0].filename
+    }
+    return await this.applicationRepository.save(application)
   }
 
   async remove(
@@ -179,5 +191,35 @@ export class ApplicationsService {
     }
 
     return { message: `Application with ID ${id} deleted successfully` }
+  }
+
+  async findApplications(jobId: number, employer: UserWithoutPassword) {
+    if (employer.role !== UserRole.EMPLOYER) {
+      throw new ForbiddenException(
+        "You are not authorized to view this job's applications",
+      )
+    }
+
+    const applications = await this.applicationRepository.find({
+      where: { job: { id: jobId, employer: { id: employer.id } } },
+      relations: ['job', 'applicant', 'job.employer'],
+    })
+
+    return applications
+  }
+
+  async findMyApplications(applicant: UserWithoutPassword) {
+    if (applicant.role !== UserRole.JOB_SEEKER) {
+      throw new ForbiddenException(
+        'You are not authorized to view your applications',
+      )
+    }
+
+    const applications = await this.applicationRepository.find({
+      where: { applicant: { id: applicant.id } },
+      relations: ['job', 'applicant', 'job.employer'],
+    })
+
+    return applications
   }
 }

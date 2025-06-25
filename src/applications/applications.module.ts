@@ -6,6 +6,7 @@ import { Application } from './entities/application.entity'
 import { MulterModule } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import * as path from 'path'
+import { ApplicationsOtherController } from './applications-other.controller'
 
 @Module({
   imports: [
@@ -43,7 +44,7 @@ import * as path from 'path'
       }),
     }),
   ],
-  controllers: [ApplicationsController],
+  controllers: [ApplicationsController, ApplicationsOtherController],
   providers: [ApplicationsService],
 })
 export class ApplicationsModule {}

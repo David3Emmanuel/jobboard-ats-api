@@ -9,6 +9,12 @@ import {
   Index,
 } from 'typeorm'
 
+export enum ApplicationStatus {
+  PENDING = 'pending',
+  SHORTLISTED = 'shortlisted',
+  REJECTED = 'rejected',
+}
+
 @Entity()
 @Index(['jobId', 'applicant'], { unique: true })
 export class Application {
@@ -36,4 +42,11 @@ export class Application {
     cascade: ['insert', 'update', 'recover'],
   })
   job: Job
+
+  @Column({
+    type: 'enum',
+    enum: ApplicationStatus,
+    default: ApplicationStatus.PENDING,
+  })
+  status: ApplicationStatus
 }
