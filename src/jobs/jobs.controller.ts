@@ -16,7 +16,7 @@ import {
 import { JobsService } from './jobs.service'
 import { CreateJobDto } from './dto/create-job.dto'
 import { UpdateJobDto } from './dto/update-job.dto'
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
+import { JwtAuthGuard } from 'src/common/guards'
 import { UserRole, UserWithoutPassword } from 'src/users/user.entity'
 import { ListJobsDto } from './dto/list-jobs.dto'
 
